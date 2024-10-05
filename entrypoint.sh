@@ -1,4 +1,5 @@
 #!/bin/bash
+git config --system --add safe.directory /github/workspace
 
 # Web UI
 if [ "$INCLUDE_WEB_UI" = "true" ]; then
@@ -22,10 +23,13 @@ $BUILD_SCRIPT_PATH $BOARD
 
 # Pull OTA firmware
 if [ "$OTA_FIRMWARE_SOURCE" != "" ] && [ "$OTA_FIRMWARE_TARGET" != "" ]; then
-    dra download --select $OTA_FIRMWARE_SOURCE --output $OTA_FIRMWARE_TARGET
+    dra download --select $OTA_FIRMWARE_SOURCE meshtastic/firmware-ota --output $OTA_FIRMWARE_TARGET
 fi
 
-# Get release version string when running in GitHub Actions
+# When running in GitHub Actions
 if [ "$GITHUB_ACTIONS" = "true" ]; then
+    # Get release version string
     echo "version=$(buildinfo.py long)" > $GITHUB_OUTPUT
+    # Set cache permissions
+    chmod -R 777 $PLATFORMIO_CACHE_DIR
 fi

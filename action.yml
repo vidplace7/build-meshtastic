@@ -35,12 +35,12 @@ outputs:
 
 runs:
   using: docker
-  image: Dockerfile
-  env:
-    ARCH: ${{ inputs.arch }}
-    BOARD: ${{ inputs.board }}
-    BUILD_SCRIPT_PATH: ${{ inputs.build-script-path }}
-    REMOVE_DEBUG_FLAGS: ${{ inputs.remove-debug-flags }}
-    OTA_FIRMWARE_SOURCE: ${{ inputs.ota-firmware-source }}
-    OTA_FIRMWARE_TARGET: ${{ inputs.ota-firmware-target }}
-    INCLUDE_WEB_UI: ${{ inputs.include-web-ui }}
+  image: docker://ghcr.io/vidplace7/build-meshtastic:main
+  # env:
+  #   ARCH: ${{ inputs.arch }}
+  #   BOARD: ${{ inputs.board }}
+  #   BUILD_SCRIPT_PATH: ${{ inputs.build-script-path }}
+  #   REMOVE_DEBUG_FLAGS: ${{ inputs.remove-debug-flags }}
+  #   OTA_FIRMWARE_SOURCE: ${{ inputs.ota-firmware-source }}
+  #   OTA_FIRMWARE_TARGET: ${{ inputs.ota-firmware-target }}
+  #   INCLUDE_WEB_UI: ${{ inputs.include-web-ui }}

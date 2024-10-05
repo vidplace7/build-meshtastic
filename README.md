@@ -6,10 +6,9 @@
 ```yaml
 uses: vidplace7/build-meshtastic@main
 with:
-  board:
-  github_token:
-  build-script-path:
-  arch:
+  arch: nrf52840
+  board: xiao_ble
+  build-script-path: bin/build-nrf52.sh
 ```
 
 ## Inputs
@@ -22,7 +21,6 @@ with:
 | `remove-debug-flags`  | False    | `""`      |             |
 | `ota-firmware-source` | False    | `""`      |             |
 | `ota-firmware-target` | False    | `""`      |             |
-| `artifact-paths`      | False    | `""`      |             |
 | `include-web-ui`      | False    | `"false"` |             |
 
 
