@@ -1,0 +1,46 @@
+name: Setup Build Variant Composite Action
+description: Variant build actions for Meshtastic Platform IO steps
+
+inputs:
+  arch:
+    description: Processor arch name
+    required: true
+    default: "esp32"
+  board:
+    description: The board to build for
+    required: true
+  build-script-path:
+    description: Path to the build script
+    required: true
+  remove-debug-flags:
+    description: A space separated list of files to remove debug flags from
+    required: false
+    default: ""
+  ota-firmware-source:
+    description: The OTA firmware file to pull
+    required: false
+    default: ""
+  ota-firmware-target:
+    description: The target path to store the OTA firmware file
+    required: false
+    default: ""
+  include-web-ui:
+    description: Include the web UI in the build
+    required: false
+    default: "false"
+
+outputs:
+  version:
+    description: The version string of the build
+
+runs:
+  using: docker
+  image: Dockerfile
+  env:
+    ARCH: ${{ inputs.arch }}
+    BOARD: ${{ inputs.board }}
+    BUILD_SCRIPT_PATH: ${{ inputs.build-script-path }}
+    REMOVE_DEBUG_FLAGS: ${{ inputs.remove-debug-flags }}
+    OTA_FIRMWARE_SOURCE: ${{ inputs.ota-firmware-source }}
+    OTA_FIRMWARE_TARGET: ${{ inputs.ota-firmware-target }}
+    INCLUDE_WEB_UI: ${{ inputs.include-web-ui }}
