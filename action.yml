@@ -2,6 +2,10 @@ name: Setup Build Variant Composite Action
 description: Variant build actions for Meshtastic Platform IO steps
 
 inputs:
+  git-ref:
+    description: The git ref (tag/branch) of the meshtastic firmware to checkout
+    required: true
+    default: "master"
   arch:
     description: Processor arch name
     required: true
@@ -36,11 +40,11 @@ outputs:
 runs:
   using: docker
   image: docker://ghcr.io/vidplace7/build-meshtastic:main
-  # env:
-  #   ARCH: ${{ inputs.arch }}
-  #   BOARD: ${{ inputs.board }}
-  #   BUILD_SCRIPT_PATH: ${{ inputs.build-script-path }}
-  #   REMOVE_DEBUG_FLAGS: ${{ inputs.remove-debug-flags }}
-  #   OTA_FIRMWARE_SOURCE: ${{ inputs.ota-firmware-source }}
-  #   OTA_FIRMWARE_TARGET: ${{ inputs.ota-firmware-target }}
-  #   INCLUDE_WEB_UI: ${{ inputs.include-web-ui }}
+  args:
+    - ${{ inputs.git-ref }}
+    - --arch
+    - ${{ inputs.arch }}
+    - --board
+    - ${{ inputs.board }}
+    - --build_script_path
+    - ${{ inputs.build-script-path }}
