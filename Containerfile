@@ -19,6 +19,7 @@ RUN python -m pip install --upgrade pip && \
 # Upgrade PlatformIO
 RUN pio upgrade
 
+COPY conf /conf
 COPY entrypoint.py /entrypoint.py
 ENTRYPOINT [ "/entrypoint.py" ]
 CMD [ "master" ]

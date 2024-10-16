@@ -7,6 +7,7 @@ import tarfile
 import sys
 import shutil
 import argparse
+import yaml
 
 from git import Repo
 
@@ -25,26 +26,16 @@ parser.add_argument('--arch', type=str, required=True,
                     help='The architecture to build for.')
 parser.add_argument('--board', type=str, required=True,
                     help='The board to build for.')
-parser.add_argument('--build_script_path', type=str, required=True,
-                    help='The path to the build script.')
-parser.add_argument('--remove_debug_flags', type=list, required=False,
-                    default=str(os.getenv('INPUT_REMOVE-DEBUG-FLAGS', '')).split(),
-                    help='The debug flags to remove from the build.')
-parser.add_argument('--ota_firmware_source', type=str, required=False,
-                    default=os.getenv('INPUT_OTA-FIRMWARE-SOURCE', ''),
-                    help='The source path to download the OTA firmware.')
-parser.add_argument('--ota_firmware_target', type=str, required=False,
-                    default=os.getenv('INPUT_OTA-FIRMWARE-TARGET', ''),
-                    help='The target path to save the OTA firmware.')
-parser.add_argument('--include_web_ui', type=bool, required=False,
-                    default=bool(os.getenv('INPUT_INCLUDE-WEB-UI', False)),
-                    help='Whether to include the web UI in the build.')
 args = parser.parse_args()
 
 env = {
     'GITHUB_ACTIONS': bool(os.getenv('GITHUB_ACTIONS')),
     'XDG_CACHE_HOME': os.path.normpath(os.getenv('XDG_CACHE_HOME', ''))
 }
+
+with open('/conf/arch_common.yaml', 'r') as arch_file:
+    arch_common = yaml.safe_load(arch_file)
+arch_conf = arch_common[args.arch]
 
 def gh_latest_release(owner, repo):
     r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest")
@@ -96,19 +87,25 @@ if env['GITHUB_ACTIONS']:
     os.system("git config --system --add safe.directory /github/workspace")
 
 # Web UI
-if args.include_web_ui == True:
-    mt_web = gh_latest_release('meshtastic', 'web')
-    for asset in mt_web['assets']:
-        if asset['name'] == 'build.tar':
-            # Download build.tar
-            download_file(asset['browser_download_url'], 'build.tar')
-            # Extract build.tar
-            extract_tar('build.tar','data/static', remove_src=True)
+try:
+    if arch_conf['include-web-ui'] == True:
+        mt_web = gh_latest_release('meshtastic', 'web')
+        for asset in mt_web['assets']:
+            if asset['name'] == 'build.tar':
+                # Download build.tar
+                download_file(asset['browser_download_url'], 'build.tar')
+                # Extract build.tar
+                extract_tar('build.tar','data/static', remove_src=True)
+except KeyError:
+    pass  # No web UI to download
 
 # Remove debug flags for release
-if len(args.remove_debug_flags) > 0:
-    for flag in args.remove_debug_flags:
-        os.system(f"sed -i /DDEBUG_HEAP/d {flag}")
+try:
+    if len(arch_conf['remove-debug-flags']) > 0:
+        for flag in arch_conf['remove-debug-flags']:
+            os.system(f"sed -i /DDEBUG_HEAP/d {flag}")
+except KeyError:
+    pass  # No debug flags to remove
 
 # Apply custom changes (if any)
 if os.path.exists('.custom'):
@@ -117,18 +114,21 @@ if os.path.exists('.custom'):
 
 # Run the Build
 sys.stdout.flush()  # Fix subprocess output buffering issue
-build_abspath = os.path.abspath(os.path.join(args.git_dir, args.build_script_path))
+build_abspath = os.path.abspath(os.path.join(args.git_dir, arch_conf['build-script-path']))
 r_build = subprocess.run(
     [build_abspath, args.board],
     cwd=args.git_dir, check=True)
 
 # Pull OTA firmware
-if args.ota_firmware_source != '' and args.ota_firmware_target != '':
-    ota_fw = gh_latest_release('meshtastic', 'firmware-ota')
-    for asset in ota_fw['assets']:
-        if asset['name'] == args.ota_firmware_source:
-            # Download firmware.bin
-            download_file(asset['browser_download_url'], args.ota_firmware_target)
+try:
+    if arch_conf['ota-firmware-source'] != '' and arch_conf['ota-firmware-target'] != '':
+        ota_fw = gh_latest_release('meshtastic', 'firmware-ota')
+        for asset in ota_fw['assets']:
+            if asset['name'] == arch_conf['ota-firmware-source']:
+                # Download firmware.bin
+                download_file(asset['browser_download_url'], arch_conf['ota-firmware-target'])
+except KeyError:
+    pass  # No OTA firmware to download
 
 # When running in GitHub Actions
 if env['GITHUB_ACTIONS']:
